@@ -1,26 +1,3 @@
-/*
-Questions:
-
-- When ViewSwitcher changes views, how can I reset the Scale slider?
-
-- ctx.size() seems to be size of whole window.  Maybe because that's what layout() returns.
-  What is the appropriate definition of Layout for a simple, flexible canvas?
-  How do I get size of my widget's actual drawing region?
-
-  (In this demo I make ad hoc corrections in paint based on what seems to work on my Mac.)
-
-- BoxMaker needs to access state (BOXES) that persists between BoxMaker instances.
-  But I see no way to pass it in except by making TestBox copy,
-  which is not acceptable in a real application.
-  Is there any alternative to lazy_static?
-
-  Maybe I could put a slider for each box in AppData, but I can't figure out how to
-  make a Lens index into my array.  A single example would be nice.
-
-- Is there a way to set the minimum window size? I would like to get smaller.
-
-*/
-
 use druid::kurbo::Circle;
 use druid::widget::{Button, Flex, Label, Slider, ViewSwitcher};
 use druid::*;
