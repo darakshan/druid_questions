@@ -1,0 +1,10 @@
+[package]
+name = "zoomedit"
+version = "0.0.1"
+authors = ["Darakshan Farber <darakshan@glenmuse.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "*"
+druid = { version = "*", features = ["image", "png"] }
+lazy_static = "*"
