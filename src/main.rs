@@ -2,17 +2,19 @@ use druid::kurbo::Circle;
 use druid::widget::{Button, Flex, Label, Slider, ViewSwitcher};
 use druid::*;
 
+use druid::im::{Vector, vector};
+
 fn main() {
-    let main_window = WindowDesc::new(main_widget);
+    let names = vec!["red", "green", "blue"];
+    let main_window = WindowDesc::new(|| main_widget(names));
     let _ = AppLauncher::with_window(main_window).launch(AppData::init());
 }
 
-fn main_widget() -> impl Widget<AppData> {
+fn main_widget(names: Vec<&str>) -> impl Widget<AppData> {
     let mut controls = Flex::column();
     for i in 0..3 {
-        let name = &BOXES.lock().unwrap()[i].name;
         controls.add_child(
-            Button::new(name.to_string())
+            Button::new(names[i].to_string())
                 .on_click(move |_event, data: &mut usize, _env| {
                     *data = i;
                 })
@@ -22,23 +24,31 @@ fn main_widget() -> impl Widget<AppData> {
     controls.add_spacer(40.0);
     controls.add_child(Label::new("Scale"));
     controls.add_child(
-        Slider::new()
-            .with_range(0.0, 1.0)
-            .lens(AppData::scale_slider),
-    );
+        ViewSwitcher::new(
+            |data: &AppData, _env| data.current_view,
+            |selector, _data, _env| 
+            //BoxMaker::new().boxed(),
+                Box::new(Slider::new()
+                    .with_range(0.0, 1.0)
+                    .lens(AppData::boxes.index(*selector).then(TestBox::scale)),
+            ))
+        );
+
 
     Flex::row()
         .with_child(controls)
-        .with_child(ViewSwitcher::new(
-            |data: &AppData, _env| data.current_view,
-            |_selector, _data, _env| BoxMaker::new().boxed(),
-        ))
+        .with_child(BoxMaker::new())
+        // .with_child(ViewSwitcher::new(
+        //     |data: &AppData, _env| data.current_view,
+        //     |_selector, _data, _env| BoxMaker::new().boxed(),
+        // ))
 }
 
 #[derive(Clone, Data, Lens)]
 struct AppData {
     current_view: usize,
     scale_slider: f64,
+    boxes: Vector<TestBox>,
 }
 
 impl AppData {
@@ -46,11 +56,17 @@ impl AppData {
         AppData {
             current_view: 0,
             scale_slider: 0.2,
+            boxes: vector![
+                       TestBox::new("red", Color::RED),
+                       TestBox::new("green", Color::GREEN),
+                       TestBox::new("blue", Color::BLUE),
+                   ]
+
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Data, Lens)]
 struct TestBox {
     current_view: usize,
     name: &'static str,
@@ -72,9 +88,9 @@ impl TestBox {
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 
-lazy_static! {
-    static ref BOXES: Mutex<Vec<TestBox>> = Mutex::new(init_boxes());
-}
+// lazy_static! {
+//     static ref BOXES: Mutex<Vec<TestBox>> = Mutex::new(init_boxes());
+// }
 
 fn init_boxes() -> Vec<TestBox> {
     vec![
@@ -98,10 +114,10 @@ impl Widget<AppData> for BoxMaker {
     fn lifecycle(&mut self, _: &mut LifeCycleCtx, _: &LifeCycle, _: &AppData, _: &Env) {}
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &AppData, data: &AppData, _e: &Env) {
-        if data.current_view == old_data.current_view {
-            let this_box = &mut BOXES.lock().unwrap()[data.current_view];
-            this_box.scale = data.scale_slider;
-        }
+        // if data.current_view == old_data.current_view {
+        //     let this_box = &mut BOXES.lock().unwrap()[data.current_view];
+        //     this_box.scale = data.scale_slider;
+        // }
         ctx.request_paint()
     }
 
@@ -128,7 +144,7 @@ impl Widget<AppData> for BoxMaker {
         // actual lower right corner for widget
         ctx.stroke(Circle::new(corrected_corner, 20.0), &Color::PURPLE, 5.0);
 
-        let this_box = &BOXES.lock().unwrap()[data.current_view];
+        let this_box = &data.boxes[data.current_view];//&BOXES.lock().unwrap()[data.current_view];
         let max_size = pane_size.width.min(pane_size.height);
         let this_box_size = Size::new(this_box.scale * max_size, this_box.scale * max_size);
         let rect = Rect::from_center_size(pane_size.to_rect().center(), this_box_size);

@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 anyhow = "*"
-druid = { version = "*", features = ["image", "png"] }
+druid = { version = "*", features = ["image", "png", "im"] }
 lazy_static = "*"
